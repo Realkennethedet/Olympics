@@ -1,0 +1,427 @@
+---
+title: "Olympics Dataset"
+author: "Kenneth Edet Okon"
+date: "6/28/2024"
+output: html_document
+---
+
+
+```{r}
+### Importing all the necessary libraries for this project
+
+library(tidyverse)
+library(readxl)
+
+```
+
+
+```{r}
+### Importing the csv file (athlete_events.csv)
+
+athelete <- read.csv(file.choose())
+
+```
+
+
+```{r}
+### First 10 records from the dataset (athlete)
+
+head(athelete,10)
+
+```
+
+```{r}
+### All the columns in the dataset (athlete)
+
+colnames(athelete)
+
+```
+
+
+```{r}
+### Importing the csv file (noc_regions.csv)
+
+noc <- read.csv(file.choose())
+
+```
+
+
+```{r}
+### First 10 records from the dataset (noc)
+
+head(noc,10)
+
+```
+
+```{r}
+### All the columns in the dataset (noc)
+
+colnames(noc)
+
+```
+
+
+```{r}
+### Merging the two data sets on the common column(NOC) and creating a new data frame from the merger
+
+athelete_noc <- inner_join(x=athelete, y=noc, by="NOC")
+
+```
+
+
+```{r}
+### Showing the merged dataset using View.
+
+view(athelete_noc)
+
+```
+
+
+```{r}
+### Total number of rows and columns in the merged dataset
+
+dim(athelete_noc)
+
+```
+
+```{r}
+### Getting information about the data frame using the str() function
+
+str(athelete_noc)
+
+```
+
+
+```{r}
+### Summary statistics on all columns in the merged dataset
+
+summary(athelete_noc)
+
+```
+
+
+```{r}
+### Checking for missing values in each of the columns in the dataset
+
+is.na(athelete_noc)
+
+```
+
+```{r}
+### Total number of null values in each column of the dataset
+
+sum(is.na(athelete_noc))
+
+```
+
+```{r}
+### Athletes from India or United States
+
+athelete_noc %>% 
+  filter(region== "USA" | region== "India") %>% 
+  view()
+  
+```
+
+```{r}
+### Number of athletes from India and United States
+
+athelete_noc %>% 
+  filter(region %in% c("USA","India")) %>% 
+  group_by(region) %>% 
+  summarize(total = n())
+
+```
+
+
+
+```{r}
+### The first and the last years captured in the dataset 
+
+View(head(athelete_noc,1))
+view(tail(athelete_noc,1))
+
+```
+
+
+```{r}
+### Number of athletes that participated each year
+
+athelete_noc %>%
+  group_by(Year) %>% 
+  summarize(total=n())
+
+```
+
+
+```{r}
+### visualizing the top five year with the highest athletes participation using column chart
+
+athelete_noc %>% 
+  group_by(Year) %>% 
+  summarize(total =n()) %>% 
+  arrange(-total) %>% 
+  head(5) %>% 
+ggplot(aes(x = reorder(Year, total), y= total, fill = Year)) + geom_col(aes(y= total), stat = "identity", position = "dodge") + labs(x= "Year", y= "Count", title = "Top five year with the highest number of participation") + geom_text(aes(y = total,label = total), vjust = "inward", color= "white")
+```
+
+
+```{r}
+### Top ten countries with the highest participation overall
+
+athelete_noc %>% 
+  group_by(region) %>% 
+  summarise(total=n()) %>% 
+  arrange(-total) %>% 
+  head(10)
+```
+
+```{r}
+### visualizing the result above using a bar chart and sorting from lowest to highest
+
+athelete_noc %>% 
+  group_by(region) %>% 
+  summarise(total=n()) %>% 
+  arrange(-total) %>% 
+  head(10) %>% 
+  ggplot(aes(x = reorder(region, -total), y= total, fill = region)) + geom_bar(aes(y = total), stat = "identity", position = "dodge") + labs(x="Country",y="Count", title = "Top ten countries with the highest overall participation") + geom_text(aes(x= region, y = total,label = total), vjust = "inward",size=3.3) + coord_flip()
+
+```
+
+
+```{r}
+### Using ggplot2 histogram to show the age distribution of the participating athletes 
+
+athelete_noc %>% 
+  group_by(Age) %>% 
+  summarise(total=n()) %>% 
+  ggplot(aes(x =Age, y= total, fill= Age)) + geom_histogram(aes(y= total),stat = "identity") + labs(y="Total", title ="Age distribution of the partcipating athletes")
+
+```
+
+
+```{r}
+### All winter Olympic games 
+
+athelete_noc %>% 
+  filter(Season == "Winter") %>% 
+  group_by(Sport) %>% 
+  summarise(total=n())
+
+```
+
+```{r}
+### All summer Olympic games 
+
+athelete_noc %>% 
+  filter(Season == "Summer") %>% 
+  group_by(Sport) %>% 
+  summarise(total=n())
+
+```
+
+```{r}
+## Total number of male and female participant
+
+overallsex <- NROW(athelete_noc$Sex)
+overallsex
+```
+
+
+```{r}
+### visualizing the number of male and female participants using ggplot2 pie chart
+
+athelete_noc %>% 
+  group_by(Sex) %>% 
+  summarise(count=n()) %>% 
+  ggplot(aes(x="", y= count, fill= Sex)) + geom_bar(stat = "identity", width = 1) + geom_text(aes(label= paste0(round(count/overallsex*100,0),"%")),position = position_stack(vjust = 0.5)) + labs(title = "Total percentage of Male and Female participant") + coord_polar("y") + theme_void()
+```
+
+
+
+```{r}
+### Total number of medals won in each country
+
+athelete_noc %>% 
+  filter(!(is.na(Medal))) %>% 
+  group_by(region) %>% 
+  summarise(total=n()) %>% 
+  arrange(-total)
+  
+
+```
+
+
+```{r}
+### visualizing top ten from the above result using ggplot2 bar chart and sorting from highest to lowest
+
+athelete_noc %>% 
+  filter(!(is.na(Medal))) %>% 
+  group_by(region) %>% 
+  summarise(total= n()) %>%
+  arrange(-total) %>% 
+  head(10) %>% 
+  ggplot(aes(x= reorder(region, total), y= total, fill= region)) + geom_col() + labs(x="Country",y="Count", title = "Total number of medals won in each country") + geom_text(aes(y =  total, label = total)) + coord_flip()
+```
+
+
+```{r}
+### visualizing the total number of female participants in each year using column chart
+
+athelete_noc %>% 
+  filter(Sex=="F") %>% 
+  group_by(Year) %>% 
+  summarise(total=n()) %>% 
+  ggplot(aes(x= reorder(Year, total), y= total, fill= Year)) + geom_col(aes(y=total), stat = "identity", position = "dodge") + labs(x="Year",y="Count", title = "Total number of female participants in each year of the olympics") + coord_flip()
+
+
+```
+
+
+```{r}
+### Total number gold medalist for Olympics 2000 and their respective countries
+
+athelete_noc %>% 
+  filter(Medal=="Gold",Year== 2000) %>% 
+  group_by(Name,region) %>% 
+  summarise(total= n())
+
+
+```
+
+
+
+```{r}
+### visualizing the overall top ten gold medals for each country using column chart and sorting from lowest to highest
+
+athelete_noc %>% 
+  filter(Medal=="Gold") %>% 
+  group_by(region) %>% 
+  summarise(total=n()) %>% 
+  arrange(-total) %>% 
+  head(10) %>% 
+  ggplot(aes(x = reorder(region, total), y= total, fill = region)) + geom_col(aes(y= total), stat = "identity", position = "dodge") + labs(x= "Country", y= "Count", title = "Top ten highest gold medals for each country") + geom_text(aes(y = total,label = total), vjust = "inward")
+
+
+```
+
+
+```{r}
+
+### visualizing the number of gold medals won from 1948-2016 using geom_line() function
+
+athelete_noc %>% 
+  filter(Medal=="Gold" & Year>1947) %>% 
+  group_by(Year) %>% 
+  summarise(total=n()) %>% 
+  ggplot(aes(x=Year, y= total)) + geom_line(aes(x= Year, y = total),color = "blue") + labs(x= "Year", y= "Count", title = "Variations in number of gold medals won from the year 1948 to 2016") + geom_text(aes(y = total,label = Year), vjust = "inward", size = 2.5)
+
+```
+
+```{r}
+### Visualizing the number of medals won each by Nigeria, South Africa and Kenya from the year 2010 to 2016 using clustered bar chart.
+
+athelete_noc %>% 
+  filter(region %in% c("Nigeria","South Africa","Kenya"), Year>2009, !(is.na(Medal))) %>%
+  group_by(region,Year) %>% 
+  summarise(Count_of_Medals=n()) %>% 
+  ggplot(aes(x=region, y= Count_of_Medals, fill = region)) + geom_bar(aes(x= region, y= Count_of_Medals), stat = "identity", position = "dodge") + facet_grid(~Year) + labs(x= "Country",y= "Total", title ="Total number of medals won by Nigeria, South Africa and Kenya (2010 - 2016)")
+
+```
+
+
+
+
+```{r}
+### Athletes that won medals for Nigeria in the 2016 Olympics and the sports they won them in
+
+athelete_noc %>% 
+  filter(Year==2016, region=="Nigeria", !(is.na(Medal))) %>% 
+  group_by(Name,Sport) %>% 
+  summarise(total=n())
+  
+```
+
+
+```{r}
+### Sorting from highest to lowest and using column chart to visualize the number of medals won from the year 2000 to 2016 by the following age groups
+### 10 -19
+### 20 -30
+### 31 -40
+### 41 -50
+### 51 -above
+
+athelete_noc %>%
+   mutate(Age_bracket= case_when(Age<=19 ~ "10-19", Age>19 & Age<=30 ~ "20-30", Age>30 & Age<=40 ~ "31-40",Age>40 & Age<=50 ~ "41-50",Age>50 ~ "Above 51"),Age_bracket= factor(Age_bracket,level= c("10-19","20-30","31-40","41-50","Above 51"))) %>% 
+  filter(Year>1999, !(is.na(Medal))) %>%
+  group_by(Age_bracket) %>%
+  summarise(total=n()) %>% 
+  ggplot(aes(x = reorder(Age_bracket, -total), y= total, fill = Age_bracket)) + geom_col(aes(y= total), position = "dodge") + labs(x= "Age Bracket", y= "Count", title = "Medals won from 2000-2016 by Age groups") + geom_text(aes(y = total,label = total), vjust = "inward")
+
+```
+
+```{r}
+### Athletes that won medals for United States in the year 2016 and the sports that they won them in
+
+athelete_noc %>% 
+  filter(Year== 2016, !(is.na(Medal)),region== "USA") %>% 
+  group_by(Name,Sport) %>% 
+  summarise(total=n())
+
+```
+
+
+
+```{r}
+### Total number of unique sports in Olympics 2000 that athletes participated 
+
+athelete_noc %>% 
+  filter(Year==2000) %>% 
+  group_by(Sport) %>% 
+  summarise(Total=n())
+
+```
+
+
+```{r}
+### visualizing the top five countries that won the highest gold medals in the year 2016 using bar chart and sortinf from highest to lowest
+
+athelete_noc %>% 
+  filter(Medal=="Gold", Year== 2016) %>% 
+  group_by(region) %>% 
+  summarise(total=n()) %>% 
+  arrange(-total) %>% 
+  head(5) %>% 
+  ggplot(aes(x = reorder(region, total), y= total, fill = region)) + geom_bar(aes(y= total), stat = "identity", position = "dodge") + labs(x= "Country", y= "Count", title = "Top five countries with highest gold medals in year 2016") + geom_text(aes(y = total,label = total), vjust = "inward") + coord_flip()
+
+```
+
+
+```{r} 
+### Sorting from highest to lowest the top 5 countries that won the most medals overall in the year 2016 and visualizing using the ggplot bar chart
+
+athelete_noc %>% 
+  filter(!(is.na(Medal)), Year== 2016) %>% 
+  group_by(region) %>% 
+  summarise(total=n()) %>% 
+  arrange(-total) %>% 
+  head(5) %>% 
+  ggplot(aes(x = reorder(region, total), y= total, fill = region)) + geom_bar(aes(y= total), stat = "identity", position = "dodge") + labs(x= "Country", y= "Count", title = "Top five countries with most medals in year 2016") + geom_text(aes(y = total,label = total), vjust = "inward") + coord_flip()
+
+
+```
+
+
+```{r}
+### visualizing the top ten countries that did not win any medals at the Olympics 2016 using the ggplot2 bar chart
+
+athelete_noc %>% 
+  filter(is.na(Medal), Year==2016) %>% 
+  group_by(region) %>% 
+  summarise(total=n()) %>% 
+  arrange(-total) %>% 
+  head(10) %>% 
+   ggplot(aes(x = reorder(region, total), y= total, fill = region)) + geom_bar(aes(y= total), stat = "identity", position = "dodge") + labs(x= "Country", y= "Count", title = "Top ten countries with no medals in year 2016") + geom_text(aes(y = total,label = total), vjust = "inward") + coord_flip()
+
+```
+
