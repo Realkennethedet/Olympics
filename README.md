@@ -1,5 +1,6 @@
 # Olympics
 Olympics is considered as the most important event worldwide, which provides a common platform to players from various nations to show their talents. The Olympics started in 1896, which is conducted once every four years. The aim of this project is to analyze performance and participation of nations in Olympics from 1896 to 2016.
+#
 Methodology: the data was cleaned and analyzed using R programming language. It includes various charts and graphs to illustrate performances such as total number of athletes during each Olympic, countries with the highest overall participation, number of gold medalist.
 #
 Key Findings:
